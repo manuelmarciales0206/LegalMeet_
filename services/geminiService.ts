@@ -3,8 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 let ai: GoogleGenAI | null = null;
 
 try {
-  if (process.env.API_KEY) {
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (import.meta.env.VITE_API_KEY) {
+    ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
   }
 } catch (error) {
   console.error("Error initializing GoogleGenAI", error);
