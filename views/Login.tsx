@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
-import { ShieldCheck, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, User as UserIcon, Scale } from 'lucide-react';
+import { UserRole } from '../types';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (role: UserRole) => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -11,6 +11,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole>('client');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +19,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     // Simulate network delay
     setTimeout(() => {
       setIsLoading(false);
-      onLogin();
+      onLogin(selectedRole);
     }, 1000);
   };
 
@@ -26,20 +27,64 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in">
         
-        {/* Header */}
-        <div className="bg-brand-800 p-8 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
-              <ShieldCheck size={40} className="text-white" />
+        {/* Header con el nuevo Logo */}
+        <div className="bg-brand-800 p-8 text-center relative overflow-hidden">
+          {/* Efecto de fondo sutil para dar tecnología */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-900 to-brand-800 opacity-100"></div>
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/circuit-board.png')] opacity-10"></div>
+          
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm shadow-2xl border border-white/10 mb-4">
+              <img 
+                src="/logo.jpg" 
+                alt="LegalMeet Logo" 
+                className="w-24 h-24 object-contain drop-shadow-md" 
+                onError={(e) => e.currentTarget.src = "https://via.placeholder.com/96?text=LM"} 
+              />
             </div>
+            {/* El logo ya trae el nombre, pero mantenemos el texto para accesibilidad si el logo no carga texto claro */}
+            <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">LegalMeet</h1>
+            <p className="text-brand-100 text-sm font-medium opacity-90">Tu abogado a un clic, sin complicaciones.</p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">LegalMeet</h1>
-          <p className="text-brand-100 text-sm font-medium">Tu abogado a un clic, sin complicaciones.</p>
         </div>
 
         {/* Form */}
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-3 text-center">
+                ¿Cómo deseas ingresar?
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('client')}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                    selectedRole === 'client' 
+                      ? 'border-action-600 bg-brand-50 text-brand-900 shadow-md' 
+                      : 'border-slate-200 hover:border-action-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <UserIcon size={24} className={`mb-2 ${selectedRole === 'client' ? 'text-action-600' : 'text-slate-400'}`} />
+                  <span className="text-xs font-bold">Soy Cliente</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('lawyer')}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                    selectedRole === 'lawyer' 
+                      ? 'border-action-600 bg-brand-50 text-brand-900 shadow-md' 
+                      : 'border-slate-200 hover:border-action-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <Scale size={24} className={`mb-2 ${selectedRole === 'lawyer' ? 'text-action-600' : 'text-slate-400'}`} />
+                  <span className="text-xs font-bold">Soy Abogado</span>
+                </button>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-1.5">
                 Correo electrónico o celular
@@ -50,7 +95,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="ejemplo@correo.com"
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-action-600 focus:border-transparent transition-all"
                 required
               />
             </div>
@@ -71,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all pr-12"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-action-600 focus:border-transparent transition-all pr-12"
                   required
                 />
                 <button
@@ -89,14 +134,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               disabled={isLoading}
               className={`
                 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-base transition-all
-                ${isLoading ? 'bg-brand-900 opacity-70 cursor-wait' : 'bg-brand-800 hover:bg-brand-900 hover:shadow-lg hover:-translate-y-0.5'}
+                ${isLoading ? 'bg-brand-900 opacity-70 cursor-wait' : 'bg-action-600 hover:bg-action-700 hover:shadow-lg hover:-translate-y-0.5'}
               `}
             >
               {isLoading ? (
                 <span>Iniciando sesión...</span>
               ) : (
                 <>
-                  Ingresar <ArrowRight size={18} />
+                  Ingresar como {selectedRole === 'client' ? 'Cliente' : 'Abogado'} <ArrowRight size={18} />
                 </>
               )}
             </button>
@@ -113,9 +158,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </div>
       </div>
       
-      <p className="mt-8 text-xs text-slate-400 text-center max-w-xs">
-        Plataforma segura y encriptada. Tus datos legales están protegidos bajo estándares bancarios.
-      </p>
+      <div className="mt-8 text-center max-w-xs">
+         <p className="text-xs text-slate-400 mb-2">Conectamos personas con abogados certificados. Asesoría legal accesible y confiable en Colombia.</p>
+         <p className="text-xs text-slate-300">Plataforma segura y encriptada.</p>
+      </div>
     </div>
   );
 };

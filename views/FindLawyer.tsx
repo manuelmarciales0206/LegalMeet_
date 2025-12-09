@@ -1,77 +1,48 @@
 
 import React, { useState } from 'react';
-import { Lawyer, Case, CaseCategory } from '../types';
+import { Lawyer, Case, CaseCategory, LawyerProfile } from '../types';
+import { MOCK_LAWYERS } from '../services/mockData';
 import { Filter, Star, MessageCircle, Video, User, CalendarCheck, SearchX } from 'lucide-react';
 import EmptyState from '../components/EmptyState';
+import PaymentModal from '../components/PaymentModal';
 
 interface FindLawyerProps {
   relatedCase?: Case;
   onSchedule?: (lawyerId: string, lawyerName: string) => void;
 }
 
-const MOCK_LAWYERS: Lawyer[] = [
-  {
-    id: '1',
-    name: 'Dra. Ana María González',
-    specialty: 'Derecho de Familia',
-    categories: ['Familiar', 'Civil'],
-    rating: 4.9,
-    reviews: 124,
-    pricePerSession: 80000,
-    available: true,
-    imageUrl: 'https://picsum.photos/id/64/200/200',
-    badges: ['Respuesta Rápida', 'Experta en Divorcios']
-  },
-  {
-    id: '2',
-    name: 'Dr. Jorge Rodríguez',
-    specialty: 'Derecho Comercial',
-    categories: ['Comercial', 'Procesal', 'Laboral'], // Updated to match demo data persona
-    rating: 4.7,
-    reviews: 89,
-    pricePerSession: 75000,
-    available: true,
-    imageUrl: 'https://picsum.photos/id/91/200/200',
-    badges: ['Defensa de Pymes']
-  },
-  {
-    id: '3',
-    name: 'Dra. Camila Torres',
-    specialty: 'Derecho Comercial',
-    categories: ['Comercial', 'Civil'],
-    rating: 5.0,
-    reviews: 42,
-    pricePerSession: 90000,
-    available: false,
-    imageUrl: 'https://picsum.photos/id/65/200/200',
-    badges: ['Contratos']
-  },
-  {
-    id: '4',
-    name: 'Dr. Felipe Martínez',
-    specialty: 'Derecho Penal',
-    categories: ['Penal', 'Procesal'],
-    rating: 4.8,
-    reviews: 56,
-    pricePerSession: 120000,
-    available: true,
-    imageUrl: 'https://picsum.photos/id/55/200/200',
-    badges: ['Casos Urgentes']
-  }
-];
-
 const FindLawyer: React.FC<FindLawyerProps> = ({ relatedCase, onSchedule }) => {
   const [filterCategory, setFilterCategory] = useState<string>(relatedCase?.category || 'all');
+  const [selectedLawyerForPayment, setSelectedLawyerForPayment] = useState<LawyerProfile | null>(null);
 
   // Filter logic
   const filteredLawyers = MOCK_LAWYERS.filter(l => {
     if (filterCategory === 'all') return true;
-    return l.categories.includes(filterCategory as CaseCategory);
+    return l.specialty === filterCategory || l.secondarySpecialties.includes(filterCategory as CaseCategory);
   });
+
+  const handleScheduleClick = (lawyer: LawyerProfile) => {
+    setSelectedLawyerForPayment(lawyer);
+  };
+
+  const handlePaymentSuccess = () => {
+    if (selectedLawyerForPayment && onSchedule) {
+       onSchedule(selectedLawyerForPayment.id, selectedLawyerForPayment.name);
+    }
+    setSelectedLawyerForPayment(null);
+  };
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
       
+      {selectedLawyerForPayment && (
+        <PaymentModal 
+          lawyer={selectedLawyerForPayment} 
+          onClose={() => setSelectedLawyerForPayment(null)}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
+
       {/* Context Banner if coming from Case Intake */}
       {relatedCase && (
         <div className="bg-brand-50 border border-brand-200 rounded-xl p-6 mb-8 flex flex-col md:flex-row items-start gap-4 shadow-sm">
@@ -100,7 +71,7 @@ const FindLawyer: React.FC<FindLawyerProps> = ({ relatedCase, onSchedule }) => {
           >
             Todos
           </button>
-          {['Penal', 'Familiar', 'Laboral', 'Comercial'].map(cat => (
+          {['Penal', 'Familiar', 'Laboral', 'Comercial', 'Civil'].map(cat => (
              <button 
              key={cat}
              onClick={() => setFilterCategory(cat)}
@@ -123,25 +94,24 @@ const FindLawyer: React.FC<FindLawyerProps> = ({ relatedCase, onSchedule }) => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex gap-3">
                   <div className="relative">
-                    <img src={lawyer.imageUrl} alt={lawyer.name} className="w-14 h-14 rounded-full object-cover border border-slate-100" />
-                    {lawyer.available && (
-                      <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" title="Disponible ahora"></span>
-                    )}
+                    <img src={lawyer.avatarUrl} alt={lawyer.name} className="w-14 h-14 rounded-full object-cover border border-slate-100" />
+                    {/* Simplified availability check */}
+                    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" title="Disponible ahora"></span>
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 text-sm leading-tight group-hover:text-brand-800 transition-colors">{lawyer.name}</h4>
                     <p className="text-xs text-brand-600 font-bold mt-0.5">{lawyer.specialty}</p>
                     <div className="flex items-center gap-1 mt-1">
                       <Star size={12} className="text-yellow-400 fill-current" />
-                      <span className="text-xs font-bold text-slate-700">{lawyer.rating}</span>
-                      <span className="text-xs text-slate-400">({lawyer.reviews} reseñas)</span>
+                      <span className="text-xs font-bold text-slate-700">{lawyer.rating.toFixed(1)}</span>
+                      <span className="text-xs text-slate-400">({lawyer.reviewCount} reseñas)</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {lawyer.badges.map(badge => (
+                {lawyer.tags.slice(0, 3).map(badge => (
                   <span key={badge} className="px-2 py-1 bg-slate-50 text-slate-600 text-[10px] uppercase font-bold tracking-wide rounded border border-slate-100">
                     {badge}
                   </span>
@@ -150,11 +120,11 @@ const FindLawyer: React.FC<FindLawyerProps> = ({ relatedCase, onSchedule }) => {
 
               <div className="flex items-center justify-between text-xs text-slate-500 mb-6 py-3 border-t border-b border-slate-50 mt-auto">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1"><Video size={14} className="text-slate-400"/> Video</div>
-                  <div className="flex items-center gap-1"><MessageCircle size={14} className="text-slate-400"/> Chat</div>
+                  {lawyer.availability.video && <div className="flex items-center gap-1"><Video size={14} className="text-slate-400"/> Video</div>}
+                  {lawyer.availability.chat && <div className="flex items-center gap-1"><MessageCircle size={14} className="text-slate-400"/> Chat</div>}
                 </div>
                 <div className="font-bold text-slate-900 text-sm">
-                  ${lawyer.pricePerSession.toLocaleString('es-CO')} <span className="text-slate-400 font-normal text-xs">/ sesión</span>
+                  ${lawyer.priceInitialConsultation.toLocaleString('es-CO')} <span className="text-slate-400 font-normal text-xs">/ consulta</span>
                 </div>
               </div>
 
@@ -163,7 +133,7 @@ const FindLawyer: React.FC<FindLawyerProps> = ({ relatedCase, onSchedule }) => {
                   <User size={14} /> Ver Perfil
                 </button>
                 <button 
-                  onClick={() => onSchedule && onSchedule(lawyer.id, lawyer.name)}
+                  onClick={() => handleScheduleClick(lawyer)}
                   className="flex items-center justify-center gap-2 bg-brand-800 text-white py-2.5 rounded-lg text-xs font-bold hover:bg-brand-900 transition-colors shadow-sm"
                 >
                   <CalendarCheck size={14} /> Agendar

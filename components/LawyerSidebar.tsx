@@ -1,28 +1,28 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
-  Search, 
-  Calendar, 
   Briefcase, 
-  User, 
+  Calendar, 
+  Users, 
+  User as UserIcon, 
+  BookOpen, 
+  DollarSign, 
   FileText, 
-  CreditCard, 
-  Heart, 
   HelpCircle, 
   Settings,
-  ShieldCheck,
   LogOut
 } from 'lucide-react';
-import { ViewState } from '../types';
+import { ViewState, User } from '../types';
 
-interface SidebarProps {
+interface LawyerSidebarProps {
   currentView: ViewState;
   setView: (view: ViewState) => void;
   isMobileOpen: boolean;
   closeMobileMenu: () => void;
+  user: User | null;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, closeMobileMenu }) => {
+const LawyerSidebar: React.FC<LawyerSidebarProps> = ({ currentView, setView, isMobileOpen, closeMobileMenu, user }) => {
   
   const NavItem = ({ view, icon: Icon, label }: { view: ViewState; icon: React.ElementType; label: string }) => (
     <button
@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, c
         />
       )}
 
-      {/* Sidebar Container - Fondo Oscuro según nuevo Branding */}
+      {/* Sidebar Container - Dark Theme for Lawyers too */}
       <aside className={`
         fixed top-0 left-0 bottom-0 w-64 bg-brand-800 border-r border-brand-900 z-30 transition-transform duration-300 ease-in-out overflow-y-auto
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -65,41 +65,37 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, c
       `}>
         {/* Logo Area */}
         <div className="h-20 flex items-center px-6 border-b border-brand-900/50">
-          <div className="flex items-center space-x-3 text-white">
-            <img 
-              src="/logo.jpg" 
-              alt="LegalMeet" 
-              className="w-10 h-10 object-contain drop-shadow" 
-              onError={(e) => e.currentTarget.src = "https://via.placeholder.com/40?text=LM"} 
-            />
-            <span className="text-xl font-bold tracking-tight">LegalMeet</span>
+          <div className="flex items-center space-x-3">
+             <img 
+               src="/logo.jpg" 
+               alt="LegalMeet" 
+               className="w-10 h-10 object-contain drop-shadow" 
+               onError={(e) => e.currentTarget.src = "https://via.placeholder.com/40?text=LM"} 
+             />
+             <span className="text-xl font-bold tracking-tight text-white">LegalMeet</span>
           </div>
         </div>
 
         {/* Navigation Content */}
         <nav className="p-4">
           <SectionTitle title="Principal" />
-          <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label="Inicio" />
-          <NavItem view={ViewState.FIND_LAWYER} icon={Search} label="Buscar Abogado" />
-          <NavItem view={ViewState.MY_APPOINTMENTS} icon={Calendar} label="Mis Citas" />
-          <NavItem view={ViewState.MY_CASES} icon={Briefcase} label="Mis Casos" />
+          <NavItem view={ViewState.LAWYER_DASHBOARD} icon={LayoutDashboard} label="Dashboard" />
+          <NavItem view={ViewState.LAWYER_CASES} icon={Briefcase} label="Mis Casos" />
+          <NavItem view={ViewState.LAWYER_AGENDA} icon={Calendar} label="Mi Agenda" />
+          <NavItem view={ViewState.LAWYER_CLIENTS} icon={Users} label="Mis Clientes" />
 
-          <SectionTitle title="Mi Cuenta" />
-          <NavItem view={ViewState.PROFILE} icon={User} label="Perfil" />
-          <NavItem view={ViewState.DOCUMENTS} icon={FileText} label="Documentos" />
-          {/* Mock items for visual completeness */}
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
-             <CreditCard size={18} className="text-slate-400" />
-             <span>Pagos</span>
-          </button>
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
-             <Heart size={18} className="text-slate-400" />
-             <span>Favoritos</span>
-          </button>
+          <SectionTitle title="Mi Práctica" />
+          <NavItem view={ViewState.LAWYER_PROFILE} icon={UserIcon} label="Perfil Profesional" />
+          <NavItem view={ViewState.LAWYER_JURISPRUDENCE} icon={BookOpen} label="Jurisprudencia" />
+          <NavItem view={ViewState.LAWYER_EARNINGS} icon={DollarSign} label="Mis Ingresos" />
+          <NavItem view={ViewState.LAWYER_DOCUMENTS} icon={FileText} label="Documentos" />
 
           <SectionTitle title="Soporte" />
           <NavItem view={ViewState.SUPPORT} icon={HelpCircle} label="Ayuda" />
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
+          <button 
+             onClick={() => setView(ViewState.LAWYER_SETTINGS)}
+             className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-colors rounded-lg mb-1 text-slate-400 hover:bg-white/10 hover:text-white`}
+          >
              <Settings size={18} className="text-slate-400" />
              <span>Configuración</span>
           </button>
@@ -109,13 +105,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, c
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-brand-900 bg-brand-900/50">
           <div className="flex items-center space-x-3">
             <img 
-              src="https://picsum.photos/100/100" 
+              src={user?.avatarUrl || "https://picsum.photos/100/100"} 
               alt="User" 
               className="w-10 h-10 rounded-full border border-slate-600"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Carlos Pérez</p>
-              <p className="text-xs text-slate-400 truncate">Plan Básico</p>
+              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+              <p className="text-xs text-action-600 font-bold truncate">Abogado</p>
             </div>
             <button className="text-slate-400 hover:text-red-400">
               <LogOut size={18} />
@@ -127,4 +123,4 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, c
   );
 };
 
-export default Sidebar;
+export default LawyerSidebar;
