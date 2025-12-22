@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Lawyer, Case, CaseCategory, LawyerProfile } from '../types';
+import { Case, CaseCategory, LawyerProfile } from '../types';
 import { MOCK_LAWYERS } from '../services/mockData';
 import { Filter, Star, MessageCircle, Video, User, CalendarCheck, SearchX } from 'lucide-react';
 import EmptyState from '../components/EmptyState';

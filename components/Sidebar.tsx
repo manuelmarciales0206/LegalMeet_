@@ -1,18 +1,6 @@
+
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Search, 
-  Calendar, 
-  Briefcase, 
-  User, 
-  FileText, 
-  CreditCard, 
-  Heart, 
-  HelpCircle, 
-  Settings,
-  ShieldCheck,
-  LogOut
-} from 'lucide-react';
+import { LayoutDashboard, Calendar, HelpCircle, User, LogOut } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface SidebarProps {
@@ -23,104 +11,44 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, isMobileOpen, closeMobileMenu }) => {
-  
   const NavItem = ({ view, icon: Icon, label }: { view: ViewState; icon: React.ElementType; label: string }) => (
     <button
       onClick={() => {
         setView(view);
         closeMobileMenu();
       }}
-      className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-colors rounded-lg mb-1
+      className={`w-full flex items-center space-x-3 px-4 py-3.5 text-sm font-bold transition-all rounded-xl mb-2
         ${currentView === view 
-          ? 'bg-action-600 text-white shadow-md' 
-          : 'text-slate-400 hover:bg-white/10 hover:text-white'
+          ? 'bg-action-600 text-white shadow-lg translate-x-1' 
+          : 'text-slate-400 hover:bg-white/5 hover:text-white'
         }`}
     >
-      <Icon size={18} className={currentView === view ? 'text-white' : 'text-slate-400'} />
+      <Icon size={20} />
       <span>{label}</span>
     </button>
   );
 
-  const SectionTitle = ({ title }: { title: string }) => (
-    <div className="px-4 mt-6 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider opacity-70">
-      {title}
-    </div>
-  );
-
   return (
     <>
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 md:hidden"
-          onClick={closeMobileMenu}
-        />
-      )}
-
-      {/* Sidebar Container - Fondo Oscuro según nuevo Branding */}
-      <aside className={`
-        fixed top-0 left-0 bottom-0 w-64 bg-brand-800 border-r border-brand-900 z-30 transition-transform duration-300 ease-in-out overflow-y-auto
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 md:static
-      `}>
-        {/* Logo Area */}
-        <div className="h-20 flex items-center px-6 border-b border-brand-900/50">
-          <div className="flex items-center space-x-3 text-white">
-            <img 
-              src="/logo.jpg" 
-              alt="LegalMeet" 
-              className="w-10 h-10 object-contain drop-shadow" 
-              onError={(e) => e.currentTarget.src = "https://via.placeholder.com/40?text=LM"} 
-            />
-            <span className="text-xl font-bold tracking-tight">LegalMeet</span>
+      {isMobileOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={closeMobileMenu} />}
+      <aside className={`fixed top-0 left-0 bottom-0 w-64 bg-brand-800 z-30 transition-transform duration-300 md:translate-x-0 md:static ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-24 flex items-center px-8">
+          <div className="flex items-center space-x-3">
+            <img src="https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg" alt="Logo" className="w-12 h-12 rounded-xl" />
+            <span className="text-xl font-black text-white tracking-tight">LegalMeet</span>
           </div>
         </div>
-
-        {/* Navigation Content */}
-        <nav className="p-4">
-          <SectionTitle title="Principal" />
-          <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label="Inicio" />
-          <NavItem view={ViewState.FIND_LAWYER} icon={Search} label="Buscar Abogado" />
+        <nav className="p-4 mt-4">
+          <NavItem view={ViewState.DASHBOARD} icon={LayoutDashboard} label="Nueva Consulta" />
           <NavItem view={ViewState.MY_APPOINTMENTS} icon={Calendar} label="Mis Citas" />
-          <NavItem view={ViewState.MY_CASES} icon={Briefcase} label="Mis Casos" />
-
-          <SectionTitle title="Mi Cuenta" />
-          <NavItem view={ViewState.PROFILE} icon={User} label="Perfil" />
-          <NavItem view={ViewState.DOCUMENTS} icon={FileText} label="Documentos" />
-          {/* Mock items for visual completeness */}
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
-             <CreditCard size={18} className="text-slate-400" />
-             <span>Pagos</span>
-          </button>
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
-             <Heart size={18} className="text-slate-400" />
-             <span>Favoritos</span>
-          </button>
-
-          <SectionTitle title="Soporte" />
           <NavItem view={ViewState.SUPPORT} icon={HelpCircle} label="Ayuda" />
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white rounded-lg mb-1">
-             <Settings size={18} className="text-slate-400" />
-             <span>Configuración</span>
-          </button>
+          <NavItem view={ViewState.PROFILE} icon={User} label="Mi Perfil" />
         </nav>
-
-        {/* User Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-brand-900 bg-brand-900/50">
-          <div className="flex items-center space-x-3">
-            <img 
-              src="https://picsum.photos/100/100" 
-              alt="User" 
-              className="w-10 h-10 rounded-full border border-slate-600"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Carlos Pérez</p>
-              <p className="text-xs text-slate-400 truncate">Plan Básico</p>
-            </div>
-            <button className="text-slate-400 hover:text-red-400">
-              <LogOut size={18} />
-            </button>
-          </div>
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+           <button className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
+             <LogOut size={20} />
+             <span>Cerrar Sesión</span>
+           </button>
         </div>
       </aside>
     </>

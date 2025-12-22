@@ -1,207 +1,296 @@
 
-import React, { useState } from 'react';
-import { ViewState, Case, Appointment, CaseCategory } from '../types';
-import { ArrowRight, Clock, Video, FileText, CheckCircle2, Search, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CaseCategory, Appointment, LawyerProfile } from '../types';
+import { MOCK_LAWYERS } from '../services/mockData';
+import { CheckCircle2, ChevronRight, ChevronLeft, CreditCard, Lock, Calendar, Clock, Star, Video, MessageCircle } from 'lucide-react';
 
 interface DashboardProps {
-  setView: (view: ViewState) => void;
-  upcomingAppointment: Appointment | null;
-  activeCases: Case[];
-  onCreateCase: (description: string, category: CaseCategory) => void;
+  onAppointmentCreated: (apt: Appointment) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ setView, upcomingAppointment, activeCases, onCreateCase }) => {
-  const [caseDescription, setCaseDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<CaseCategory>('Familiar');
+const Dashboard: React.FC<DashboardProps> = ({ onAppointmentCreated }) => {
+  const [step, setStep] = useState(1);
+  const [caseData, setCaseData] = useState({ description: '', category: '' as CaseCategory });
+  const [selectedLawyer, setSelectedLawyer] = useState<LawyerProfile | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const categories: CaseCategory[] = ['Penal', 'Procesal', 'Familiar', 'Laboral', 'Civil'];
+  // STEP 1: Intake
+  const categories: {id: CaseCategory, name: string, icon: string}[] = [
+    { id: 'Laboral', name: 'Laboral', icon: '💼' },
+    { id: 'Familiar', name: 'Familiar', icon: '👨‍👩‍👧' },
+    { id: 'Penal', name: 'Penal', icon: '⚖️' },
+    { id: 'Civil', name: 'Civil', icon: '📄' },
+    { id: 'Comercial', name: 'Comercial', icon: '🏢' },
+  ];
 
-  const handleAnalyze = () => {
-    if (caseDescription.trim().length > 0) {
-      onCreateCase(caseDescription, selectedCategory);
+  useEffect(() => {
+    const saved = localStorage.getItem('legalmeet_whatsapp_data');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.descripcion) setCaseData(prev => ({ ...prev, description: data.descripcion }));
+      if (data.tipo) setCaseData(prev => ({ ...prev, category: data.tipo as CaseCategory }));
     }
+  }, []);
+
+  const handlePayment = async () => {
+    if (!selectedLawyer || !selectedDate || !selectedTime) return;
+    setIsProcessing(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const appointment: Appointment = {
+      id: 'apt_' + Date.now(),
+      lawyerId: selectedLawyer.id,
+      lawyerName: selectedLawyer.name,
+      lawyerPhoto: selectedLawyer.avatarUrl,
+      lawyerSpecialty: selectedLawyer.specialty,
+      caseDescription: caseData.description,
+      caseCategory: caseData.category,
+      date: selectedDate.toISOString(),
+      time: selectedTime,
+      status: 'upcoming',
+      price: selectedLawyer.priceInitialConsultation,
+      createdAt: new Date().toISOString()
+    };
+    
+    localStorage.removeItem('legalmeet_whatsapp_data');
+    setIsProcessing(false);
+    onAppointmentCreated(appointment);
   };
 
+  const getAvailableDates = () => {
+    const dates = [];
+    let date = new Date();
+    while (dates.length < 7) {
+      date.setDate(date.getDate() + 1);
+      if (date.getDay() !== 0) dates.push(new Date(date));
+    }
+    return dates;
+  };
+
+  const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'];
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
-      
-      {/* 
-        Bloque de Exposición del Caso (Intake Form)
-        Diseño Responsive: Flex-col en móvil, Flex-row en escritorio (interno).
-        Uso de Grillas y Flexbox moderno.
-      */}
-      <div className="bg-white rounded-2xl shadow-sm border border-brand-100 overflow-hidden">
-        <div className="p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Expón tu caso</h2>
-          <p className="text-slate-500 mb-6 text-sm md:text-base">
-            Describe tu situación con tus propias palabras. No necesitas términos legales complejos.
-          </p>
-
-          <div className="flex flex-col gap-6">
-            {/* Input Area */}
-            <div className="w-full">
-              <textarea
-                value={caseDescription}
-                onChange={(e) => setCaseDescription(e.target.value)}
-                placeholder="Hola, cuéntanos brevemente qué te está pasando. Por ejemplo: 'Necesito ayuda con una herencia familiar que no hemos podido repartir'..."
-                className="w-full h-32 p-4 rounded-xl border border-slate-300 text-slate-700 placeholder-slate-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none resize-none bg-slate-50 transition-all text-sm leading-relaxed"
-              ></textarea>
-            </div>
-
-            {/* Classification & Action */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="flex-1">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-                  ¿A qué se relaciona tu problema?
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedCategory === cat
-                          ? 'bg-brand-800 text-white shadow-md transform scale-105'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-800'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                  <button onClick={() => setSelectedCategory('Otro')} className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-slate-200 text-slate-600 hover:border-brand-300">
-                    Otro
-                  </button>
-                </div>
-              </div>
-
-              <button 
-                onClick={handleAnalyze}
-                disabled={!caseDescription.trim()}
-                className={`
-                  flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-white transition-all shadow-lg
-                  ${caseDescription.trim() 
-                    ? 'bg-action-600 hover:bg-action-700 hover:-translate-y-0.5' 
-                    : 'bg-slate-300 cursor-not-allowed'}
-                `}
-              >
-                <Search size={20} />
-                <span className="md:hidden">Analizar</span>
-                <span className="hidden md:inline">Analizar mi caso y buscar abogado</span>
-              </button>
-            </div>
+    <div className="min-h-full bg-slate-50 flex flex-col">
+      {/* Progress bar */}
+      <div className="bg-white border-b px-6 py-4 sticky top-0 z-20">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-slate-700">Paso {step} de 3</span>
+            <span className="text-sm font-medium text-slate-500">
+              {step === 1 && 'Describe tu caso'}
+              {step === 2 && 'Elige abogado y horario'}
+              {step === 3 && 'Confirma y paga'}
+            </span>
           </div>
-        </div>
-        
-        {/* Footer del Intake */}
-        <div className="bg-brand-50 border-t border-brand-100 px-6 py-3 flex items-center gap-2 text-xs text-brand-900">
-          <CheckCircle2 size={14} className="text-brand-600" />
-          <span>Al hacer clic, se creará un borrador seguro de tu caso en "Mis Casos".</span>
+          <div className="h-2 bg-slate-100 rounded-full">
+            <div className="h-2 bg-action-600 rounded-full transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }} />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-3xl mx-auto p-6 w-full space-y-6 animate-fade-in">
         
-        {/* Upcoming Appointment Card */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Clock className="text-brand-800" size={20} />
-              Próxima Cita
-            </h3>
-            {upcomingAppointment && (
-              <span className="text-[10px] font-bold uppercase bg-green-100 text-green-700 px-2 py-1 rounded">Confirmada</span>
-            )}
-          </div>
-          
-          {upcomingAppointment ? (
-            <div className="flex-1 flex flex-col justify-center space-y-3">
-               <div className="flex items-start gap-3">
-                 <img src="https://picsum.photos/id/64/100/100" alt="Lawyer" className="w-12 h-12 rounded-full object-cover border border-slate-100" />
-                 <div className="min-w-0">
-                   <p className="font-semibold text-slate-900 truncate">{upcomingAppointment.lawyerName}</p>
-                   <p className="text-xs text-slate-500 truncate">{upcomingAppointment.caseTitle}</p>
-                 </div>
-               </div>
-               <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-100">
-                 <div className="flex items-center gap-2 mb-1">
-                    <CalendarIcon className="w-4 h-4 text-slate-400" />
-                    <span className="font-medium">{new Date(upcomingAppointment.date).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short'})}</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <ClockIcon className="w-4 h-4 text-slate-400" />
-                    <span>{upcomingAppointment.time}</span>
-                 </div>
-               </div>
-               <button className="w-full mt-2 bg-brand-800 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-brand-900 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                 <Video size={16} /> Unirse ahora
-               </button>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
-               <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-2">
-                 <Clock size={24} className="text-slate-300" />
-               </div>
-               <p className="text-slate-500 text-sm">No tienes citas programadas.</p>
-               <button onClick={() => setView(ViewState.MY_APPOINTMENTS)} className="text-action-600 text-xs font-bold mt-2 hover:underline">
-                 Ver historial
-               </button>
-            </div>
-          )}
-        </div>
+        {step === 1 && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">¿En qué podemos ayudarte?</h2>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCaseData({...caseData, category: cat.id})}
+                    className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                      caseData.category === cat.id ? 'border-action-600 bg-brand-50' : 'border-slate-100 hover:border-slate-200 bg-white'
+                    }`}
+                  >
+                    <span className="text-2xl">{cat.icon}</span>
+                    <span className="font-bold text-xs">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
 
-        {/* Active Cases Summary */}
-        <div className="md:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-             <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <FileText className="text-brand-800" size={20} />
-              Mis Casos Activos
-            </h3>
-            <button 
-              onClick={() => setView(ViewState.MY_CASES)}
-              className="text-action-600 text-sm font-medium hover:underline flex items-center gap-1"
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Cuéntanos tu situación</label>
+                <textarea
+                  value={caseData.description}
+                  onChange={(e) => setCaseData({...caseData, description: e.target.value})}
+                  placeholder="Describe brevemente qué te está pasando..."
+                  className="w-full h-40 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-action-600 focus:border-transparent resize-none text-slate-700"
+                />
+                <p className="text-xs text-slate-400 mt-2">{caseData.description.length} caracteres (mínimo 20 recomendado)</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setStep(2)}
+              disabled={caseData.description.length < 10 || !caseData.category}
+              className="w-full py-4 bg-action-600 text-white rounded-xl font-bold text-lg hover:bg-action-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg flex items-center justify-center gap-2"
             >
-              Gestionar casos <ArrowRight size={14} />
+              Buscar abogados disponibles <ChevronRight size={20} />
             </button>
           </div>
+        )}
 
-          <div className="space-y-3">
-            {activeCases.slice(0, 3).map(c => (
-              <div key={c.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-100 rounded-lg hover:bg-slate-50 hover:border-brand-200 transition-all cursor-pointer" onClick={() => setView(ViewState.MY_CASES)}>
-                <div className="mb-2 sm:mb-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-slate-900 group-hover:text-brand-900">{c.title}</h4>
-                    {c.status === 'draft' && <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] font-bold rounded uppercase">Borrador</span>}
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {c.status === 'draft' ? 'Sin abogado asignado' : `Abogado: ${c.lawyerName}`}
-                  </p>
+        {step === 2 && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+              <h2 className="text-xl font-bold text-slate-800 mb-4">Abogados en {caseData.category}</h2>
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                {MOCK_LAWYERS.filter(l => l.specialty === caseData.category).map(lawyer => (
+                  <button
+                    key={lawyer.id}
+                    onClick={() => setSelectedLawyer(lawyer)}
+                    className={`w-full p-4 rounded-xl border-2 flex items-center gap-4 transition-all ${
+                      selectedLawyer?.id === lawyer.id ? 'border-action-600 bg-brand-50' : 'border-slate-100 hover:border-slate-200 bg-white'
+                    }`}
+                  >
+                    <img src={lawyer.avatarUrl} alt={lawyer.name} className="w-14 h-14 rounded-full border border-slate-100 object-cover" />
+                    <div className="flex-1 text-left">
+                      <h3 className="font-bold text-slate-900">{lawyer.name}</h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Star size={14} className="text-yellow-400 fill-current" />
+                        <span className="text-xs font-bold text-slate-700">{lawyer.rating.toFixed(1)}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">({lawyer.reviewCount} reseñas)</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-action-600 text-sm">${lawyer.priceInitialConsultation.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400">por cita</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {selectedLawyer && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-fade-in">
+                <h2 className="text-xl font-bold text-slate-800 mb-4">Elige fecha y hora</h2>
+                <div className="flex gap-2 overflow-x-auto pb-4 mb-6 custom-scrollbar">
+                  {getAvailableDates().map((date) => {
+                    const isSelected = selectedDate?.toDateString() === date.toDateString();
+                    return (
+                      <button
+                        key={date.toISOString()}
+                        onClick={() => setSelectedDate(date)}
+                        className={`flex-shrink-0 p-4 rounded-xl text-center min-w-[80px] transition-all border-2 ${
+                          isSelected ? 'bg-action-600 border-action-600 text-white shadow-md' : 'bg-white border-slate-100 hover:border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        <p className="text-[10px] font-bold uppercase mb-1">{date.toLocaleDateString('es-CO', { weekday: 'short' })}</p>
+                        <p className="text-xl font-bold">{date.getDate()}</p>
+                        <p className="text-[10px] opacity-70">{date.toLocaleDateString('es-CO', { month: 'short' })}</p>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-end min-w-[80px]">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Siguiente paso</span>
-                    <span className="text-xs font-medium text-slate-700 text-right">
-                      {c.nextAction}
-                    </span>
+
+                {selectedDate && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {timeSlots.map((time) => (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-3 px-2 rounded-xl text-xs font-bold transition-all border-2 ${
+                          selectedTime === time ? 'bg-action-600 border-action-600 text-white shadow-sm' : 'bg-slate-50 border-transparent hover:border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
                   </div>
-                  <ArrowUpRight size={18} className="text-slate-300 group-hover:text-brand-600 transition-colors" />
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <button onClick={() => setStep(1)} className="flex-1 py-4 border-2 border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 flex items-center justify-center gap-2"><ChevronLeft size={20}/> Volver</button>
+              <button onClick={() => setStep(3)} disabled={!selectedLawyer || !selectedDate || !selectedTime} className="flex-[2] py-4 bg-action-600 text-white rounded-xl font-bold text-lg hover:bg-action-700 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2">Continuar al pago <ChevronRight size={20}/></button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && selectedLawyer && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+              <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <CheckCircle2 className="text-action-600" /> Resumen de tu cita
+              </h2>
+              
+              <div className="flex items-center gap-4 p-4 bg-brand-50 rounded-2xl border border-brand-100 mb-6">
+                <img src={selectedLawyer.avatarUrl} alt={selectedLawyer.name} className="w-16 h-16 rounded-full border-2 border-white shadow-sm" />
+                <div>
+                  <h3 className="font-bold text-slate-900">{selectedLawyer.name}</h3>
+                  <p className="text-xs text-action-600 font-bold uppercase">{selectedLawyer.specialty}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
+              <div className="space-y-4 text-sm px-2">
+                <div className="flex justify-between border-b border-slate-50 pb-3">
+                  <span className="text-slate-500 font-medium">Fecha y Hora</span>
+                  <span className="font-bold text-slate-800">
+                    {selectedDate?.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' })} • {selectedTime}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-50 pb-3">
+                  <span className="text-slate-500 font-medium">Tipo de Caso</span>
+                  <span className="font-bold text-slate-800">{caseData.category}</span>
+                </div>
+                <div className="flex justify-between text-lg pt-2">
+                  <span className="font-bold text-slate-800">Total a pagar</span>
+                  <span className="font-black text-action-600">${selectedLawyer.priceInitialConsultation.toLocaleString()} COP</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <Lock size={18} className="text-brand-800" /> Elige método de pago
+              </h2>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: 'pse', name: 'PSE', icon: '🏦' },
+                  { id: 'card', name: 'Tarjeta', icon: '💳' },
+                  { id: 'nequi', name: 'Nequi', icon: '📱' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setPaymentMethod(m.id)}
+                    className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                      paymentMethod === m.id ? 'border-action-600 bg-brand-50' : 'border-slate-100 hover:border-slate-200 bg-white'
+                    }`}
+                  >
+                    <span className="text-2xl">{m.icon}</span>
+                    <span className="font-bold text-xs">{m.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setStep(2)} className="flex-1 py-4 border-2 border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">← Volver</button>
+              <button
+                onClick={handlePayment}
+                disabled={!paymentMethod || isProcessing}
+                className={`flex-[2] py-4 rounded-xl font-bold text-lg text-white transition-all shadow-lg flex items-center justify-center gap-2 ${
+                  paymentMethod && !isProcessing ? 'bg-action-600 hover:bg-action-700' : 'bg-slate-200 cursor-not-allowed'
+                }`}
+              >
+                {isProcessing ? (
+                  <>Procesando...</>
+                ) : (
+                  <>Confirmar y Pagar <CreditCard size={20}/></>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-
-// Simple Icon Wrappers
-const CalendarIcon = ({className}: {className?: string}) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-)
-
-const ClockIcon = ({className}: {className?: string}) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-)
 
 export default Dashboard;
