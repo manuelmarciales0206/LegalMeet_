@@ -123,6 +123,22 @@ export interface Transaction {
   paymentMethod: string;
 }
 
+// Fixed: Added missing Appointment interface used in views/Dashboard.tsx, App.tsx, and views/MyAppointments.tsx
+export interface Appointment {
+  id: string;
+  lawyerId: string;
+  lawyerName: string;
+  lawyerPhoto: string;
+  lawyerSpecialty: string;
+  caseDescription: string;
+  caseCategory: CaseCategory;
+  date: string;
+  time: string;
+  status: 'upcoming' | 'completed' | 'cancelled';
+  price: number;
+  createdAt: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;

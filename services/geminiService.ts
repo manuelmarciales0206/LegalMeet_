@@ -1,14 +1,10 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Always use named parameter for apiKey initialization
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use named parameter for apiKey initialization and rely on process.env.API_KEY directly
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const sendMessageToAssistant = async (message: string): Promise<string> => {
-  if (!process.env.API_KEY) {
-    return "Lo siento, el asistente virtual no está configurado actualmente (Falta API Key).";
-  }
-
   try {
     // Correct way to call generateContent directly on ai.models
     const response = await ai.models.generateContent({
@@ -28,12 +24,8 @@ export const sendMessageToAssistant = async (message: string): Promise<string> =
 };
 
 export const searchJurisprudence = async (query: string): Promise<string> => {
-    if (!process.env.API_KEY) {
-      return "⚠️ Función no disponible: Falta API Key.";
-    }
-  
     try {
-      // Use gemini-3-pro-preview for complex reasoning tasks
+      // Use gemini-3-pro-preview for complex reasoning tasks as per guidelines
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: query,

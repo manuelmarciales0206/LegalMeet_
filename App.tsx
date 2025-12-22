@@ -7,6 +7,7 @@ import Login from './views/Login';
 import Dashboard from './views/Dashboard';
 import MyAppointments from './views/MyAppointments';
 import Support from './views/Support';
+import Profile from './views/Profile';
 import LawyerDashboard from './views/lawyer/LawyerDashboard';
 import LawyerAgenda from './views/lawyer/LawyerAgenda';
 import LawyerClients from './views/lawyer/LawyerClients';
@@ -94,6 +95,7 @@ const App: React.FC = () => {
       case ViewState.DASHBOARD: return 'Nueva Consulta';
       case ViewState.MY_APPOINTMENTS: return 'Mis Citas';
       case ViewState.SUPPORT: return 'Ayuda';
+      case ViewState.PROFILE: return 'Mi Perfil';
       case ViewState.LAWYER_DASHBOARD: return 'Panel Abogado';
       case ViewState.LAWYER_AGENDA: return 'Mi Agenda';
       case ViewState.LAWYER_CLIENTS: return 'Clientes';
@@ -121,6 +123,8 @@ const App: React.FC = () => {
         return <MyAppointments appointments={appointments} />;
       case ViewState.SUPPORT:
         return <Support />;
+      case ViewState.PROFILE:
+        return <Profile />;
       case ViewState.LAWYER_DASHBOARD:
         return <LawyerDashboard setView={setCurrentView} />;
       case ViewState.LAWYER_AGENDA:
