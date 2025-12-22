@@ -36,7 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <div className="relative z-10 flex flex-col items-center">
             <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm shadow-2xl border border-white/10 mb-4">
               <img 
-                src="/logo.jpg" 
+                src="https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg" 
                 alt="LegalMeet Logo" 
                 className="w-24 h-24 object-contain drop-shadow-md" 
                 onError={(e) => e.currentTarget.src = "https://via.placeholder.com/96?text=LM"} 

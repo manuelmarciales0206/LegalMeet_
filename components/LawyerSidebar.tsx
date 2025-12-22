@@ -67,7 +67,7 @@ const LawyerSidebar: React.FC<LawyerSidebarProps> = ({ currentView, setView, isM
         <div className="h-20 flex items-center px-6 border-b border-brand-900/50">
           <div className="flex items-center space-x-3">
              <img 
-               src="/logo.jpg" 
+               src="https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg" 
                alt="LegalMeet" 
                className="w-10 h-10 object-contain drop-shadow" 
                onError={(e) => e.currentTarget.src = "https://via.placeholder.com/40?text=LM"} 
