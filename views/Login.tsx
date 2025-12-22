@@ -39,7 +39,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 src="https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg" 
                 alt="LegalMeet Logo" 
                 className="w-24 h-24 object-contain drop-shadow-md" 
-                onError={(e) => e.currentTarget.src = "https://via.placeholder.com/96?text=LM"} 
+                onError={(e) => e.currentTarget.src = "https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg"} 
               />
             </div>
             {/* El logo ya trae el nombre, pero mantenemos el texto para accesibilidad si el logo no carga texto claro */}

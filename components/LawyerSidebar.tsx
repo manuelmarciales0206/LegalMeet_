@@ -70,7 +70,7 @@ const LawyerSidebar: React.FC<LawyerSidebarProps> = ({ currentView, setView, isM
                src="https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg" 
                alt="LegalMeet" 
                className="w-10 h-10 object-contain drop-shadow" 
-               onError={(e) => e.currentTarget.src = "https://via.placeholder.com/40?text=LM"} 
+               onError={(e) => e.currentTarget.src = "https://raw.githubusercontent.com/manuelmarciales0206/LegalMeet_/main/public/logo.jpg"} 
              />
              <span className="text-xl font-bold tracking-tight text-white">LegalMeet</span>
           </div>
