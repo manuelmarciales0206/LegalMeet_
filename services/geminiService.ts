@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Always use named parameter for apiKey initialization and rely on process.env.API_KEY directly
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
 export const sendMessageToAssistant = async (message: string): Promise<string> => {
   try {
