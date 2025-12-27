@@ -1,6 +1,6 @@
 // services/openaiService.ts
 // Usamos process.env para consistencia con el entorno de ejecución
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 export const searchJurisprudenceAI = async (query: string): Promise<string> => {
   try {
