@@ -14,6 +14,8 @@ import LawyerClients from './views/lawyer/LawyerClients';
 import LawyerProfileView from './views/lawyer/LawyerProfile';
 import LawyerEarnings from './views/lawyer/LawyerEarnings';
 import LawyerRegistration from './views/lawyer/LawyerRegistration';
+import LawyerCases from './views/LawyerCases';
+import Jurisprudence from './views/Jurisprudence';
 import { ViewState, User, UserRole, Appointment } from './types';
 import EmptyState from './components/EmptyState';
 import { WifiOff } from 'lucide-react';
@@ -98,9 +100,11 @@ const App: React.FC = () => {
       case ViewState.PROFILE: return 'Mi Perfil';
       case ViewState.LAWYER_DASHBOARD: return 'Panel Abogado';
       case ViewState.LAWYER_AGENDA: return 'Mi Agenda';
+      case ViewState.LAWYER_CASES: return 'Mis Casos';
       case ViewState.LAWYER_CLIENTS: return 'Clientes';
       case ViewState.LAWYER_PROFILE: return 'Perfil';
       case ViewState.LAWYER_EARNINGS: return 'Ingresos';
+      case ViewState.LAWYER_JURISPRUDENCE: return 'Jurisprudencia IA';
       case ViewState.LAWYER_REGISTRATION: return 'Registro Profesional';
       default: return 'LegalMeet';
     }
@@ -129,12 +133,17 @@ const App: React.FC = () => {
         return <LawyerDashboard setView={setCurrentView} />;
       case ViewState.LAWYER_AGENDA:
         return <LawyerAgenda />;
+      case ViewState.LAWYER_CASES:
+        return <LawyerCases />;
       case ViewState.LAWYER_CLIENTS:
         return <LawyerClients />;
       case ViewState.LAWYER_PROFILE:
         return <LawyerProfileView />;
       case ViewState.LAWYER_EARNINGS:
         return <LawyerEarnings />;
+      case ViewState.LAWYER_JURISPRUDENCE:
+        // Fixed: Use correct component name 'Jurisprudence' instead of typo 'Jurisprudencia'
+        return <Jurisprudence />;
       case ViewState.LAWYER_REGISTRATION:
         return <LawyerRegistration />;
       default:
